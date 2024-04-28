@@ -60,9 +60,9 @@ export const Navigation = (): JSX.Element => {
           options={{ headerShown: false }}
         /> */}
         <Stack.Screen name="Home" component={Home} options={{ headerShown: false }} />
-        <Stack.Screen name="MyCards" component={MyCards} options={{ headerShown: false }} />
+        {/* <Stack.Screen name="MyCards" component={MyCards} options={{ headerShown: false }} />
         <Stack.Screen name="Transfers" component={Transfer} options={{ headerShown: false }} />
-        <Stack.Screen name="Settings" component={Settings} options={{ headerShown: false }} />
+        <Stack.Screen name="Settings" component={Settings} options={{ headerShown: false }} /> */}
       </Stack.Navigator>
     </NavigationContainer>
   );

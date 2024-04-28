@@ -4,7 +4,6 @@ import { TouchableOpacity, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useNavigation } from '@react-navigation/native';
 import { hp, wp } from '../../../../resnponsive';
-
 import VisaLogo from './../../../../assets/visaLogo.svg';
 
 export const CardCredit: React.FC<any> = ({ value, id, number, backgroundColor, typeCard }) => {
