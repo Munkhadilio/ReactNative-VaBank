@@ -2,6 +2,7 @@ import { backgroundColor } from '../../styles/styleVar';
 import styled from 'styled-components';
 import { View, TextInput, Text } from 'react-native';
 import { Button } from 'react-native-paper';
+import { hp, wp } from './../../../resnponsive';
 
 export const LoginContainer = styled(View)`
   margin-top: 100px;
@@ -21,6 +22,7 @@ export const CustomInput = styled(TextInput)`
   border: #fff;
   color: #fff;
   border-radius: 7px;
+  font-size: ${hp(15)}px;
 `;
 
 export const CustomButtonActive = styled(Button)`

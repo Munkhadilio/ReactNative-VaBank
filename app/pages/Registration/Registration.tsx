@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { ScrollView } from 'react-native';
+import { ScrollView, TouchableOpacity } from 'react-native';
 import axios from '../../axios.js';
 import { useZustand } from '../../zustand.js';
 import {
@@ -14,10 +14,10 @@ import {
   RadioGroup,
   RadioGroupItem,
 } from './styles';
-import { useRoute } from '@react-navigation/native';
 import { Header } from './../../components/Header/Header';
-import { RadioButton } from 'react-native-paper';
+import { RadioButton, Modal, Portal, Text } from 'react-native-paper';
 import { View } from 'react-native';
+import { hp } from '../../../resnponsive.js';
 import { EyeOffIcon, EyeIcon, CheckIcon } from 'lucide-react-native';
 
 interface IUser {
@@ -29,25 +29,23 @@ interface IUser {
   phoneNumber: string;
 }
 
-interface IRoute {
-  name: string;
-}
-
 export const Registration = ({ navigation }) => {
-  const route: IRoute = useRoute();
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<IUser>({
     firstName: '',
     lastName: '',
     email: '',
     phoneNumber: '',
-    gender: 'male',
+    gender: '',
     password: '',
   });
 
   const handleInputChange = (name, value) => {
     setFormData({ ...formData, [name]: value });
+    setErrorRes('');
   };
 
+  //State
+  const [errorRes, setErrorRes] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
   const [validationPassword, setValidationPassword] = useState(false);
 
@@ -82,9 +80,8 @@ export const Registration = ({ navigation }) => {
     };
   };
 
-  const userState = useZustand((state) => state.userState);
-  const addUser = useZustand((state) => state.addUser);
   const validationResults = validatePassword(formData.password);
+  const addUser = useZustand((state) => state.addUser);
 
   const onSubmit = async () => {
     try {
@@ -96,29 +93,30 @@ export const Registration = ({ navigation }) => {
         return;
       }
 
-      const { data } = await axios.post('/auth/send-otp', {
-        email: formData.email,
-        forPage: route.name,
+      const { data } = await axios.post('/user/register', {
+        ...formData,
       });
 
-      const userPayload: IUser = formData;
-
-      if (data.success && data.forPage) {
-        await addUser(userPayload);
-        navigation.navigate('OTP', { haveAccount: false, forPage: data.forPage });
-      } else if (!data) {
-        console.log('No data');
+      if (data.userDto.enabled === false) {
+        await addUser(data);
+        navigation.navigate('OTP', { register: true });
       }
     } catch (error) {
-      console.log(error);
+      if (error.response.data) {
+        setErrorRes(error.response.data);
+      } else {
+        console.log('err');
+      }
     }
   };
+
   return (
     <>
       <ScrollView
         showsHorizontalScrollIndicator={false}
         style={{ flex: 1, backgroundColor: '#000000' }}>
         <Header navigation={navigation} />
+
         <LoginContainer>
           <View>
             <CustomText>Имя</CustomText>
@@ -157,6 +155,7 @@ export const Registration = ({ navigation }) => {
               value={formData.email}
               onChangeText={(text) => handleInputChange('email', text)}
             />
+            {errorRes?.errEmail && <Text style={{ color: '#FF1E1E' }}> {errorRes.errEmail}</Text>}
           </View>
 
           <View>
@@ -165,18 +164,35 @@ export const Registration = ({ navigation }) => {
               value={formData.phoneNumber}
               onChangeText={(text) => handleInputChange('phoneNumber', text)}
             />
+            {errorRes?.errPhone && <Text style={{ color: '#FF1E1E' }}> {errorRes.errPhone}</Text>}
           </View>
 
           <View>
             <CustomText>Пароль</CustomText>
 
-            <CustomInput
-              secureTextEntry
-              value={formData.password}
-              onChangeText={(text) => {
-                handleInputChange('password', text);
-              }}
-            />
+            <View style={{ position: 'relative' }}>
+              <CustomInput
+                secureTextEntry={!showPassword}
+                value={formData.password}
+                onChangeText={(text) => {
+                  handleInputChange('password', text);
+                }}
+              />
+              <TouchableOpacity
+                style={{
+                  position: 'absolute',
+                  right: 10,
+                  top: '50%',
+                  transform: [{ translateY: -hp(15) / 2 }],
+                }}
+                onPress={() => handleState()}>
+                {showPassword ? (
+                  <EyeOffIcon size={hp(15)} color="white" />
+                ) : (
+                  <EyeIcon size={hp(15)} color="white" />
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
 
           <ValidationIndicators>

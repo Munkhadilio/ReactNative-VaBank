@@ -2,6 +2,7 @@ import { backgroundColor } from '../../styles/styleVar';
 import styled from 'styled-components';
 import { View, TextInput, Text } from 'react-native';
 import { Button } from 'react-native-paper';
+import { hp } from '../../../resnponsive';
 
 export const LoginContainer = styled(View)`
   display: flex;
@@ -17,9 +18,26 @@ export const CustomInput = styled(TextInput)`
   height: 35px;
   padding-left: 10px;
   background-color: #000;
-  border: #fff;
+  border-bottom-width: 1px; /* Указываем ширину нижней границы */
+  border-bottom-color: #fff; /* Указываем цвет нижней границы */
+  font-size: ${hp(17)}px;
   color: #fff;
-  border-radius: 7px;
+  border-radius: 0px;
+`;
+
+export const MoneyInput = styled(TextInput)`
+  padding-left: 10px;
+  background-color: #000;
+  border: none;
+  color: #fff;
+  font-size: ${hp(40)}px;
+  border-radius: 0;
+`;
+
+export const MoneyText = styled(Text)`
+  color: #fff;
+  padding-left: 10px;
+  font-size: ${hp(40)}px;
 `;
 
 export const CustomButtonActive = styled(Button)`

@@ -7,22 +7,22 @@ const instance = axios.create({
   baseURL: `${config.API_BASE_URL}`,
 });
 
-instance.interceptors.request.use(async (config) => {
-  // Получение токена из хранилища
-  let accessToken = null;
-  if (Platform.OS === 'web') {
-    // Если это веб-версия, используйте localStorage
-    accessToken = localStorage.getItem('accessToken');
-  } else {
-    accessToken = await AsyncStorage.getItem('accessToken');
-  }
+// instance.interceptors.request.use(async (config) => {
+//   // Получение токена из хранилища
+//   let accessToken = null;
+//   if (Platform.OS === 'web') {
+//     // Если это веб-версия, используйте localStorage
+//     accessToken = localStorage.getItem('accessToken');
+//   } else {
+//     accessToken = await AsyncStorage.getItem('accessToken');
+//   }
 
-  // Установка токена в заголовке
-  if (accessToken) {
-    config.headers.Authorization = `Bearer ${accessToken}`;
-  }
+//   // Установка токена в заголовке
+//   if (accessToken) {
+//     config.headers.Authorization = `Bearer ${accessToken}`;
+//   }
 
-  return config;
-});
+//   return config;
+// });
 
 export default instance;

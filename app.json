@@ -17,6 +17,12 @@
         {
           "faceIDPermission": "Allow $(PRODUCT_NAME) to use Face ID."
         }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "The app accesses your photos to let you share them with your friends."
+        }
       ]
     ],
     "assetBundlePatterns": ["**/*"],
@@ -29,10 +35,9 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#000"
       },
-      "permissions": ["android.permission.USE_BIOMETRIC", "android.permission.USE_FINGERPRINT"],
-      "package": "com.VaBank.VaBank"
+      "permissions": ["android.permission.USE_BIOMETRIC", "android.permission.USE_FINGERPRINT"]
     },
     "web": {
       "favicon": "./assets/favicon.png"

@@ -1,28 +1,18 @@
-import { Text, View, TouchableOpacity } from 'react-native';
+import { backgroundColor } from '../../styles/styleVar';
 import styled from 'styled-components';
+import { View } from 'react-native';
 
 export const Container = styled(View)`
   display: flex;
-  align-items: center;
-  justify-content: center;
   flex: 1;
-  background-color: #000;
-`;
-
-export const Button = styled(TouchableOpacity)`
-  margin-top: 50px;
-  border-radius: 34px;
-  width: 324px;
-  height: 50px;
-  align-items: center;
   justify-content: center;
-  background-color: #fff;
+  align-items: center;
+  background-color: ${backgroundColor};
 `;
 
-export const ButtonText = styled(Text)`
-  color: #000;
-  text-align: center;
-  font-size: 15px;
-  font-style: normal;
-  font-weight: 500;
+export const ButtonContainer = styled(View)`
+  display: flex;
+  gap: 20px;
+  flex-direction: row;
+  margin: 0 auto;
 `;

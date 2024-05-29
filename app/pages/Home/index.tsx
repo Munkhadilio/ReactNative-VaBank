@@ -1,6 +1,7 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { useRef } from 'react';
-
+import React, { useEffect, useRef, useState, useCallback } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { useFocusEffect } from '@react-navigation/native';
 import {
   Image,
   StyleSheet,
@@ -14,8 +15,7 @@ import {
 import { Header } from '../../components/Header/Header';
 import Span from '../../components/span';
 import { hp, wp } from '../../../resnponsive';
-import { dataCard } from '../../services/data';
-
+import axios from './../../axios';
 // components
 import { CardCredit } from './cardCredit';
 import { CurrentLoans } from './currentLoans';
@@ -26,9 +26,55 @@ import { Index as CurrenciesAndMetal } from './currenciesAndMetal';
 import StarIcon from './../../../assets/starIcon.svg';
 import BudgetIcon from './../../../assets/budgetIcon.svg';
 import FinanceIcon from './../../../assets/financeIcon.svg';
+import { useZustand } from './../../zustand';
 
 export const Home: React.FC<any> = ({ navigation }) => {
   const ref = useRef();
+  const [dataFetched, setDataFetched] = useState<any>({});
+  const [cardList, setCardList] = useState([]);
+  const zustand = useZustand();
+
+  useFocusEffect(
+    useCallback(() => {
+      const fetchData = async () => {
+        try {
+          const accessToken = await AsyncStorage.getItem('accessToken');
+          await zustand.getProfile(accessToken);
+          const localUserState = zustand.getState().localUserState;
+          await AsyncStorage.setItem('profile', JSON.stringify(localUserState.data.user));
+          setDataFetched(localUserState.data.user);
+        } catch (error) {
+          console.error('Ошибка при получении профиля пользователя:', error);
+        }
+      };
+
+      const fetchStorage = async () => {
+        try {
+          const profile = await AsyncStorage.getItem('profile');
+          const retrievedProfile = JSON.parse(profile);
+          setDataFetched(retrievedProfile);
+        } catch (error) {
+          console.error('Ошибка при получении профиля пользователя:', error);
+        }
+      };
+
+      const fetchDataCards = async () => {
+        const accessToken = await AsyncStorage.getItem('accessToken');
+        try {
+          const { data } = await axios.get('/cards/list', {
+            headers: { Authorization: `Bearer ${accessToken}` },
+          });
+          setCardList(data?.data?.cards);
+        } catch (error) {
+          console.error('Ошибка при получении данных:', error);
+        }
+      };
+
+      fetchData();
+      fetchDataCards();
+      fetchStorage();
+    }, []),
+  );
 
   return (
     <>
@@ -38,21 +84,29 @@ export const Home: React.FC<any> = ({ navigation }) => {
         showsVerticalScrollIndicator={false}
         ref={ref}
         bounces={false}>
-        <View style={styles.userContainer}>
-          <Image style={styles.avatar} source={require('./../../../assets/avatar.png')} />
-          <Text style={styles.username}>Adilzhan</Text>
-        </View>
+        <TouchableOpacity onPress={() => navigation.navigate('Profile')}>
+          <View style={styles.userContainer}>
+            <Image style={styles.avatar} source={{ uri: dataFetched?.imgUrl }} />
+            <Text style={styles.username}>
+              {dataFetched?.lastName + ' ' + dataFetched?.firstName}
+            </Text>
+          </View>
+        </TouchableOpacity>
         <View style={styles.balanceContainer}>
-          <Text style={styles.textBalance}>Ваш счет</Text>
-          <Text style={styles.textMoney}>$ 7,896</Text>
+          {cardList.map((item, id) => (
+            <View key={id}>
+              {item.cardName !== 'Deposit' && (
+                <>
+                  <Text style={styles.textBalance}>{item.cardName}:</Text>
+                  <Text style={styles.textMoney}>{item.balance} ₸</Text>
+                </>
+              )}
+            </View>
+          ))}
         </View>
-        <FlatList
-          data={dataCard}
-          renderItem={(data) => <CardCredit {...data.item} />}
-          style={{ marginTop: hp(20), height: hp(170) }}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-        />
+        <ScrollView style={{ marginTop: hp(20) }} horizontal showsHorizontalScrollIndicator={false}>
+          <CardCredit cards={cardList} />
+        </ScrollView>
         <Text style={styles.textFinance}>ФИНАНСЫ</Text>
         <View>
           <ScrollView
@@ -78,7 +132,7 @@ export const Home: React.FC<any> = ({ navigation }) => {
 
             <CardFinances
               title="Фин. аналитика"
-              routeName="AnatlicalFinances"
+              routeName=""
               navigation={navigation}
               Icon={FinanceIcon}
               backgroundColor="rgba(170, 158, 183, 1)"
@@ -104,9 +158,11 @@ const styles = StyleSheet.create({
     width: '100%',
     paddingLeft: wp(20),
     paddingRight: wp(20),
-    height: hp(50),
     marginTop: hp(24),
     justifyContent: 'center',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: hp(5),
   },
   textBalance: {
     color: 'white',
@@ -127,9 +183,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   avatar: {
-    width: wp(40),
-    height: hp(40),
+    width: wp(50),
+    height: hp(50),
     marginRight: wp(10),
+    borderRadius: 100,
   },
   username: {
     color: 'white',

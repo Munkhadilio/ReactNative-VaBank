@@ -1,55 +1,106 @@
 /* eslint-disable react/jsx-props-no-spreading */
-import React, { useEffect, useRef } from 'react';
-import { StyleSheet, View, Text, FlatList, Dimensions, Animated } from 'react-native';
-
+import React, { useEffect, useRef, useState } from 'react';
+import { StyleSheet, View, Text, ScrollView, Dimensions, Animated } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { hp, wp } from '../../../../resnponsive';
-
 import VisaLogo from '../../../../assets/visaLogo.svg';
 import ChipLogo from '../../../../assets/chip.svg';
-import { dataCard, dataProps } from '../../../services/data';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import axios from '../../../axios';
 
 const { width } = Dimensions.get('window');
 
-export default function Index({ id }) {
+export interface dataProps {
+  id: string;
+  balance: string;
+  cardExpiryDate: string;
+  last4Digits: string;
+  cardHolderName: string;
+  cardName: string;
+  backgroundColor?: string[];
+}
+
+const cardColors = {
+  Premium: ['rgba(252, 255, 223, 1)', 'rgba(241, 254, 135, 1)'],
+  Standart: ['rgba(234, 234, 234, 1)', 'rgba(178, 208, 206, 1)'],
+  Deposit: ['rgba(242, 239, 244, 1)', 'rgba(184, 169, 198, 1)'],
+};
+
+export default function Index({ cardName, id }) {
   const scrollX = useRef(new Animated.Value(0)).current;
-  const refScrollX = useRef<FlatList>();
+  const refScrollX = useRef<ScrollView>(null);
+  const [dataCard, setDataCard] = useState<dataProps[]>([]);
+  const [dataFullCard, setDataFullCard] = useState<dataProps | null>(null);
 
   useEffect(() => {
-    refScrollX.current?.scrollToOffset({
-      offset: Number(id) * width,
-      animated: false,
-    });
-  });
+    if (refScrollX.current) {
+      refScrollX.current.scrollTo({
+        x: Number(id) * width,
+        animated: false,
+      });
+    }
+  }, [id]);
+
+  useEffect(() => {
+    const fetchDataCards = async () => {
+      const accessToken = await AsyncStorage.getItem('accessToken');
+      try {
+        const { data } = await axios.get('/cards/list', {
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        setDataCard(data?.data?.cards || []);
+      } catch (error) {
+        console.error('Ошибка при получении данных:', error);
+      }
+    };
+
+    const fetchDataFullCard = async () => {
+      const accessToken = await AsyncStorage.getItem('accessToken');
+      try {
+        const { data } = await axios.get(`/cards/getfull?cardname=${cardName}`, {
+          params: { cardName },
+          headers: { Authorization: `Bearer ${accessToken}` },
+        });
+        setDataFullCard(data?.data?.bankCard);
+      } catch (error) {
+        console.error('Ошибка при получении данных:', error);
+      }
+    };
+
+    fetchDataCards();
+    fetchDataFullCard();
+  }, [id]);
 
   return (
     <View style={{ height: hp(220), marginTop: hp(112) }}>
-      <FlatList
+      <ScrollView
+        ref={refScrollX}
         horizontal
-        ref={refScrollX as React.LegacyRef<FlatList<dataProps>>}
         showsHorizontalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 20 }}
         pagingEnabled
         onScroll={Animated.event([{ nativeEvent: { contentOffset: { x: scrollX } } }], {
           useNativeDriver: false,
         })}
         bounces={false}
-        data={dataCard}
-        renderItem={(data) => <CardCredit {...data.item} />}
-        keyExtractor={(data) => data.id}
-      />
-      <Indicator scrollX={scrollX} />
+        contentContainerStyle={{ paddingBottom: 20 }}>
+        {dataCard.map((item) => (
+          <CardCredit key={item.id} {...item} />
+        ))}
+      </ScrollView>
+      <Indicator scrollX={scrollX} dataCard={dataCard} />
     </View>
   );
 }
 
-function CardCredit({ name, number, valid, value, backgroundColor }: dataProps) {
+function CardCredit({ cardHolderName, last4Digits, cardExpiryDate, balance, cardName }: dataProps) {
+  const colors = cardColors[cardName] || ['#000000', '#000000'];
+
   return (
     <View style={{ width, alignItems: 'center' }}>
-      <LinearGradient style={styles.cardContainer} colors={backgroundColor}>
+      <LinearGradient style={styles.cardContainer} colors={colors}>
         <View style={styles.visaLogoContainer}>
           <VisaLogo height={hp(47)} width={hp(47)} />
-          <Text style={styles.visaLogoValueText}>{value}</Text>
+          <Text style={styles.visaLogoValueText}>{balance} ₸</Text>
         </View>
         <View>
           <View style={styles.chipContainer}>
@@ -57,11 +108,11 @@ function CardCredit({ name, number, valid, value, backgroundColor }: dataProps) 
             <Text style={styles.validTextOrExpire}>VALID THRU</Text>
           </View>
           <View style={styles.visaLogoContainer}>
-            <Text style={styles.numberCard}>•••• •••• •••• {number}</Text>
-            <Text style={styles.validTextOrExpire}>{valid}</Text>
+            <Text style={styles.numberCard}>•••• •••• •••• {last4Digits}</Text>
+            <Text style={styles.validTextOrExpire}>{cardExpiryDate}</Text>
           </View>
         </View>
-        <Text style={styles.validTextOrExpire}>{name}</Text>
+        <Text style={styles.validTextOrExpire}>{cardHolderName}</Text>
       </LinearGradient>
     </View>
   );
@@ -69,12 +120,17 @@ function CardCredit({ name, number, valid, value, backgroundColor }: dataProps) 
 
 interface IndicatorProps {
   scrollX: Animated.Value;
+  dataCard: dataProps[];
 }
 
-function Indicator({ scrollX }: IndicatorProps) {
+function Indicator({ scrollX, dataCard }: IndicatorProps) {
+  if (!dataCard || dataCard.length === 0) {
+    return null; // Возвращаем null, если данных нет
+  }
+
   return (
     <View style={{ flexDirection: 'row', justifyContent: 'center' }}>
-      {dataCard.map((_, index) => {
+      {dataCard.map((item, index) => {
         const inputRange = [(index - 1) * width, index * width, (index + 1) * width];
         const scale = scrollX.interpolate({
           inputRange,
@@ -88,18 +144,14 @@ function Indicator({ scrollX }: IndicatorProps) {
         });
         return (
           <Animated.View
-            key={_.id}
+            key={item.id}
             style={{
               backgroundColor,
               height: hp(3),
               width: hp(3),
               margin: wp(6),
               borderRadius: hp(1.5),
-              transform: [
-                {
-                  scale,
-                },
-              ],
+              transform: [{ scale }],
             }}
           />
         );

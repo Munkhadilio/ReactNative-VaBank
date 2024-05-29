@@ -9,7 +9,7 @@ export default function App() {
 
   return (
     <PaperProvider>
-      <View style={styles.container}>
+      <View style={styles.background}>
         <Navigation />
       </View>
     </PaperProvider>
@@ -17,9 +17,8 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  container: {
+  background: {
     flex: 1,
     backgroundColor: '#000',
-    paddingBottom: 20,
   },
 });

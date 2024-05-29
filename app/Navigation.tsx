@@ -12,6 +12,11 @@ import { BiometricAgreement } from './pages/BiometricAgreement/BiometricAgreemen
 import { Biometric } from './pages/Biometric/Biometric';
 import { Settings } from './pages/Settings/Settings';
 import { MyCards } from './pages/MyCards/index';
+import { Index as Profile } from './pages/Profile/index';
+import { Splash } from './pages/Splash';
+import { ForgotPasswordNotLogIn } from './pages/ForgotPasswordNotLogIn/ForgotPasswordNotLogIn';
+import { ForgotPassword } from './pages/ForgotPassword/ForgotPassword';
+import { AddCard } from './pages/AddCard/AddCard';
 
 type RootStackParamList = {
   StartMenu: undefined;
@@ -24,45 +29,74 @@ type RootStackParamList = {
   Biometric: undefined;
   MyCards: undefined;
   Transfers: undefined;
+  Splash: undefined;
+  ForgotPasswordNotLogIn: undefined;
+  ForgotPassword: undefined;
+  Profile: undefined;
+  AddCard: undefined;
 };
 
 const Stack = createStackNavigator<RootStackParamList>();
 
 export const Navigation = (): JSX.Element => {
-  const [biometric, setBiometric] = useState<string | null>(null);
+  const [haveAccessToken, setHaveAccessToken] = useState(false);
 
   useEffect(() => {
-    const fetchBiometric = async () => {
-      const value = await AsyncStorage.getItem('Biometric');
-      setBiometric(value);
+    const fetchAuthenticationData = async () => {
+      const accessToken = AsyncStorage.getItem('accessToken');
+      if (await accessToken) {
+        setHaveAccessToken(true);
+      }
     };
 
-    fetchBiometric();
+    fetchAuthenticationData();
+  }, []);
+
+  const [isLoading, setIsLoading] = useState(true);
+  useEffect(() => {
+    setTimeout(() => {
+      setIsLoading(false);
+    }, 2000);
   }, []);
 
   return (
     <NavigationContainer>
       <Stack.Navigator>
-        {/* {biometric === 'true' ? (
+        {isLoading && (
+          <Stack.Screen name="Splash" component={Splash} options={{ headerShown: false }} />
+        )}
+        {haveAccessToken && (
           <Stack.Screen name="Biometric" component={Biometric} options={{ headerShown: false }} />
-        ) : null}
+        )}
         <Stack.Screen name="StartMenu" component={StartMenu} options={{ headerShown: false }} />
+        <Stack.Screen
+          name="BiometricAgreement"
+          component={BiometricAgreement}
+          options={{ headerShown: false }}
+        />
         <Stack.Screen name="Login" component={Login} options={{ headerShown: false }} />
         <Stack.Screen
           name="Registration"
           component={Registration}
           options={{ headerShown: false }}
         />
-        <Stack.Screen name="OTP" component={OTP} options={{ headerShown: false }} />
         <Stack.Screen
-          name="BiometricAgreement"
-          component={BiometricAgreement}
+          name="ForgotPasswordNotLogIn"
+          component={ForgotPasswordNotLogIn}
           options={{ headerShown: false }}
-        /> */}
+        />
+        <Stack.Screen
+          name="ForgotPassword"
+          component={ForgotPassword}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen name="OTP" component={OTP} options={{ headerShown: false }} />
         <Stack.Screen name="Home" component={Home} options={{ headerShown: false }} />
-        {/* <Stack.Screen name="MyCards" component={MyCards} options={{ headerShown: false }} />
+        <Stack.Screen name="Profile" component={Profile} options={{ headerShown: false }} />
+        <Stack.Screen name="AddCard" component={AddCard} options={{ headerShown: false }} />
+        <Stack.Screen name="MyCards" component={MyCards} options={{ headerShown: false }} />
         <Stack.Screen name="Transfers" component={Transfer} options={{ headerShown: false }} />
-        <Stack.Screen name="Settings" component={Settings} options={{ headerShown: false }} /> */}
+        <Stack.Screen name="Settings" component={Settings} options={{ headerShown: false }} />
       </Stack.Navigator>
     </NavigationContainer>
   );

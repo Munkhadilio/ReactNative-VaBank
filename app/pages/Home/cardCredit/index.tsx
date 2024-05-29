@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 
 import { TouchableOpacity, StyleSheet, Text, View } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -6,36 +6,58 @@ import { useNavigation } from '@react-navigation/native';
 import { hp, wp } from '../../../../resnponsive';
 import VisaLogo from './../../../../assets/visaLogo.svg';
 
-export const CardCredit: React.FC<any> = ({ value, id, number, backgroundColor, typeCard }) => {
-  const navigate = useNavigation();
+const cardColors = {
+  Premium: ['rgba(252, 255, 223, 1)', 'rgba(241, 254, 135, 1)'],
+  Standart: ['rgba(234, 234, 234, 1)', 'rgba(178, 208, 206, 1)'],
+  Deposit: ['rgba(242, 239, 244, 1)', 'rgba(184, 169, 198, 1)'],
+};
 
-  const HandleNavgation = () => {
-    navigate.navigate('MyCards', { id });
-  };
-
-  const getMarginLeft = () => {
-    if (id === '0') return wp(20);
-    return 0;
-  };
-
-  const getMarginRight = () => {
-    if (id === '2') return wp(20);
-    return 0;
+export const CardCredit: React.FC<any> = ({ cards }) => {
+  const navigation = useNavigation();
+  const handleNavigation = (cardName, id) => {
+    navigation.navigate('MyCards', { cardName, id });
   };
 
   return (
-    <TouchableOpacity activeOpacity={0.9} onPress={() => HandleNavgation()}>
-      <LinearGradient
-        colors={backgroundColor}
-        style={[{ marginLeft: getMarginLeft(), marginRight: getMarginRight() }, styles.container]}>
-        <VisaLogo />
-        <View>
-          <Text style={styles.typeCard}>{typeCard}</Text>
-          <Text style={styles.money}>{value}</Text>
-        </View>
-        <Text style={styles.cardNumber}>{number}</Text>
-      </LinearGradient>
-    </TouchableOpacity>
+    <>
+      {cards &&
+        cards.map((card, id) => (
+          <>
+            <TouchableOpacity
+              key={id}
+              activeOpacity={0.9}
+              onPress={() => handleNavigation(card.cardName, id)}>
+              <LinearGradient
+                colors={cardColors[card.cardName] || ['#4c669f', '#3b5998']}
+                style={[styles.container, { marginLeft: id === 0 ? wp(20) : 0 }]}>
+                <>
+                  <VisaLogo />
+                  <View>
+                    <Text style={styles.typeCard}>{card.cardName}</Text>
+                    <Text style={styles.cardHolderName}>{card.cardHolderName}</Text>
+                  </View>
+                  <Text style={styles.cardNumber}>{card.last4Digits}</Text>
+                </>
+              </LinearGradient>
+            </TouchableOpacity>
+          </>
+        ))}
+      {cards ? (
+        <TouchableOpacity activeOpacity={0.9} onPress={() => navigation.navigate('AddCard')}>
+          <LinearGradient colors={['#55bae6', '#1b60f7']} style={styles.container}>
+            <Text style={styles.typeCard}>Открыть карту</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity activeOpacity={0.9} onPress={() => navigation.navigate('AddCard')}>
+          <LinearGradient
+            colors={['#55bae6', '#1b60f7']}
+            style={[styles.container, { marginLeft: wp(20) }]}>
+            <Text style={styles.typeCard}>Открыть карту</Text>
+          </LinearGradient>
+        </TouchableOpacity>
+      )}
+    </>
   );
 };
 
@@ -52,14 +74,8 @@ const styles = StyleSheet.create({
     marginRight: wp(13),
   },
   typeCard: {
-    fontSize: hp(14),
-    color: 'rgba(39, 42, 50, 1)',
-    lineHeight: hp(14),
-    letterSpacing: 0.8,
-  },
-  money: {
     fontSize: hp(19),
-    color: 'rgba(39, 42, 50, 1)',
+    color: '#000000',
     lineHeight: hp(24),
     fontWeight: '700',
   },
@@ -68,5 +84,14 @@ const styles = StyleSheet.create({
     color: 'rgba(39, 42, 50, 1)',
     lineHeight: hp(14),
     letterSpacing: 0.8,
+  },
+  cardHolderName: {
+    marginTop: hp(14),
+    fontSize: hp(14),
+    color: 'rgba(39, 42, 50, 1)',
+    lineHeight: hp(14),
+    letterSpacing: 0.8,
+    width: wp(120),
+    flexWrap: 'wrap',
   },
 });

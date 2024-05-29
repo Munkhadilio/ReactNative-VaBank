@@ -10,6 +10,7 @@ type RootStackParamList = {
   StartMenu: undefined;
   Home: undefined;
   Settings: undefined;
+  Biometric: undefined;
 };
 
 type HeaderProps = {
@@ -24,7 +25,7 @@ export const Header: React.FC<HeaderProps> = ({ navigation }) => {
   return (
     <HeaderContainer style={styles.container}>
       <StatusBar translucent barStyle="light-content" backgroundColor="transparent" />
-      {route.name === 'StartMenu' || route.name === 'Home' ? null : (
+      {route.name === 'StartMenu' || route.name === 'Home' || route.name === 'Biometric' ? null : (
         <RoundedButton style={styles.components} onPress={() => navigation.goBack()}>
           <FontAwesomeIcon icon="arrow-left" size={25} color="#000" />
         </RoundedButton>

@@ -6,12 +6,13 @@ import CardCredit from './cardCredit';
 import Transactions from './transactions';
 
 export const MyCards = ({ route, navigation }) => {
-  const { id } = route.params;
+  const { cardName, id } = route.params;
+  console.log(cardName);
   return (
     <>
       <Header navigation={navigation} />
       <View style={styles.background}>
-        <CardCredit id={id} />
+        <CardCredit cardName={cardName} id={id} />
         <Transactions />
       </View>
     </>

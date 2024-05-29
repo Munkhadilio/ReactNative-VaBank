@@ -26,5 +26,5 @@ export const MenuItem = styled(View)`
 
 export const MenuItemLabel = styled(Text)`
   color: #fff;
-  font-size: 22px;
+  font-size: 20px;
 `;

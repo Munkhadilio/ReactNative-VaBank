@@ -1,56 +1,43 @@
 import React, { useEffect, useState } from 'react';
-
-import { Header } from '../../components/Header/Header';
-import { LogoSVG } from '../../styles/styleComponents';
-import { Container, Button, ButtonText } from './styles';
 import * as LocalAuthentication from 'expo-local-authentication';
+import { Text, Button } from 'react-native-paper';
+import { Container } from './styles';
+import { Header } from '../../components/Header/Header';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { StackNavigationProp } from '@react-navigation/stack';
 
-type RootStackParamList = {
-  Home: undefined;
-};
-
-type BiometricProps = {
-  navigation: StackNavigationProp<RootStackParamList>;
-};
-
-export const Biometric: React.FC<BiometricProps> = ({ navigation }) => {
-  const [isBiometricSupported, setIsBiometricSupported] = useState(false);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  useEffect(() => {
-    (async () => {
-      const compatible = await LocalAuthentication.hasHardwareAsync(); // если подходтт
-      setIsBiometricSupported(compatible);
-    })();
-  }, []);
-
-  const onAuthenticate = async () => {
-    const res = await AsyncStorage.getItem('Biometric');
-    if (isBiometricSupported && res === 'true') {
-      const auth = LocalAuthentication.authenticateAsync({
+export const Biometric: React.FC<any> = ({ navigation }) => {
+  const BiometricSet = async () => {
+    const biometricStat = await AsyncStorage.getItem('Biometric');
+    if (biometricStat === 'true') {
+      const res = await LocalAuthentication.authenticateAsync({
         promptMessage: 'Authenticate',
-        // cancelLabel: 'Cancel', // включи это если закоментишт нижнее
         fallbackLabel: 'Enter Password',
         disableDeviceFallback: false,
+      }).catch((error) => {
+        console.error('Biometric authentication failed:', error);
+        return { success: false };
       });
-      auth.then((result) => {
-        setIsAuthenticated(result.success);
-        AsyncStorage.setItem('Biometric', 'true');
+
+      if (res && res.success) {
         navigation.navigate('Home');
-      });
-    } else if (res === 'false') {
+      }
+    } else if (biometricStat === 'false') {
       navigation.navigate('Home');
     }
   };
 
   return (
     <>
+      <Header navigation={navigation} />
       <Container>
-        <LogoSVG />
-        <Button onPress={() => onAuthenticate()}>
-          <ButtonText>Мой банк</ButtonText>
+        <Button style={{ backgroundColor: '#004e96' }} mode="contained" onPress={BiometricSet}>
+          <Text style={{ color: '#fff', fontSize: 18 }}>Мой банк</Text>
+        </Button>
+        <Button
+          style={{ backgroundColor: '#ff0000', marginTop: 20 }}
+          mode="contained"
+          onPress={() => navigation.navigate('StartMenu')}>
+          <Text style={{ color: '#fff', fontSize: 18 }}>Выйти</Text>
         </Button>
       </Container>
     </>

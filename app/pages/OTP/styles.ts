@@ -26,3 +26,11 @@ export const CustomTextButton = styled(Text)`
   font-style: normal;
   font-weight: 500;
 `;
+
+export const CustomTextButtonDisabled = styled(Text)`
+  color: gray;
+  text-align: center;
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 500;
+`;
